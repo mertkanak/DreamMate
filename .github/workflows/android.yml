@@ -22,20 +22,6 @@ jobs:
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v3
 
-      - name: Increment Version Code
-        run: |
-          VERSION_FILE=version.properties
-          VERSION_CODE=$(grep VERSION_CODE $VERSION_FILE | cut -d '=' -f2)
-          VERSION_NAME=$(grep VERSION_NAME $VERSION_FILE | cut -d '=' -f2)
-          NEW_VERSION_CODE=$((VERSION_CODE + 1))
-          echo "VERSION_CODE=$NEW_VERSION_CODE" > $VERSION_FILE
-          echo "VERSION_NAME=$VERSION_NAME" >> $VERSION_FILE
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add $VERSION_FILE
-          git commit -m "🔢 CI: Increment version code to $NEW_VERSION_CODE"
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
-
       - name: Build APK
         run: ./gradlew assembleDebug
 
