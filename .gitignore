@@ -1,28 +1,53 @@
-# Gradle
+# ========================
+# Android Studio & Gradle
+# ========================
 .gradle/
 **/build/
-*.iml
-.gradle/
+.cxx/
+captures/
 local.properties
+*.iml
 .idea/
+*.apk
+*.ap_
 
-# Keystore
+# ========================
+# Kotlin Script
+# ========================
+*.kts~
+*.log
+
+# ========================
+# Keystore & Credentials
+# ========================
 *.jks
+*.keystore
 
-# Firebase
+# ========================
+# Firebase & Secrets
+# ========================
 google-services.json
 serviceAccountKey.json
-
-# Environment
+firebase_b64.txt
 .env
+.env.*
 
-# VSCode / MacOS
+# ========================
+# VS Code & macOS
+# ========================
 .vscode/
 .DS_Store
 
-# Kotlin Script Output
-*.kts~
+# ========================
+# Misc
+# ========================
+*.swp
+*.bak
+*.tmp
+*.orig
 
-# Android Studio
-.cxx/
-captures/
+# ========================
+# Version Control
+# ========================
+*.patch
+*.diff

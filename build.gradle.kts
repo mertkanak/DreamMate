@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,17 +7,24 @@ plugins {
     id("com.google.gms.google-services") version "4.4.2"
 }
 
+// version.properties dosyasını oku
+val versionPropsFile = rootProject.file("version.properties")
+val versionProps = Properties().apply {
+    load(versionPropsFile.inputStream())
+}
+val versionCode = versionProps["VERSION_CODE"].toString().toInt()
+val versionName = versionProps["VERSION_NAME"].toString()
+
 android {
     namespace = "com.example.dreammate"
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.dreammate"
-        minSdk = 26  // Android O (8.0) destek için doğru
+        minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
-
+        this.versionCode = versionCode
+        this.versionName = versionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -33,6 +42,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -57,18 +67,16 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    // build.gradle
     implementation("androidx.navigation:navigation-compose:2.7.5")
 
     // --- Coroutine ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-
+    // --- Firebase ---
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging:23.4.0")
-
 
     // --- Test & Debug ---
     testImplementation(libs.junit)
