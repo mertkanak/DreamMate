@@ -47,4 +47,4 @@ jobs:
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: internal-testers
           file: app/build/outputs/apk/debug/app-debug.apk
-          releaseNotes: "Version ${{ steps.version.outputs.version_name }}"
+          releaseNotesFile: release-notes.txt
