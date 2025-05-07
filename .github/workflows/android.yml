@@ -30,6 +30,13 @@ jobs:
         run: |
           mkdir -p src/debug
           echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > src/debug/google-services.json
+
+      - name: Read version info
+        id: version
+        run: |
+          VERSION_NAME=$(grep VERSION_NAME version.properties | cut -d '=' -f2)
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+
       - name: Build APK
         run: ./gradlew assembleDebug
 
@@ -40,3 +47,4 @@ jobs:
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: internal-testers
           file: app/build/outputs/apk/debug/app-debug.apk
+          releaseNotes: "Version ${{ steps.version.outputs.version_name }}"
