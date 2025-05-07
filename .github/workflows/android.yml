@@ -28,7 +28,8 @@ jobs:
 
       - name: Decode google-services.json
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > app/google-services.json
+          mkdir -p app/src/debug
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > app/src/debug/google-services.json
 
       - name: Build APK
         run: ./gradlew assembleDebug
