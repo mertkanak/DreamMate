@@ -1,1 +1,3 @@
-/build
+/buildgoogle-services.json
+.env
+serviceAccountKey.json
