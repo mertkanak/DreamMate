@@ -1,6 +1,28 @@
-/buildgoogle-services.json
-.env
-serviceAccountKey.json
+# Gradle
+.gradle/
+**/build/
+*.iml
+.gradle/
+local.properties
+.idea/
+
+# Keystore
+*.jks
+
+# Firebase
 google-services.json
-.env
 serviceAccountKey.json
+
+# Environment
+.env
+
+# VSCode / MacOS
+.vscode/
+.DS_Store
+
+# Kotlin Script Output
+*.kts~
+
+# Android Studio
+.cxx/
+captures/
