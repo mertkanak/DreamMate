@@ -48,3 +48,11 @@ jobs:
           groups: internal-testers
           file: app/build/outputs/apk/debug/app-debug.apk
           releaseNotesFile: releases-notes.txt
+
+      - name: Send Slack notification on failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{
+            "text": "🚨 *CI/CD FAILED* on `${{ github.ref }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+          }' ${{ secrets.SLACK_WEBHOOK }}
