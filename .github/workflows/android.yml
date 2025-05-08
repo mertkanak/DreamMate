@@ -56,3 +56,11 @@ jobs:
           --data '{
             "text": "🚨 *CI/CD FAILED* on `${{ github.ref }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
           }' ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Send Slack notification on success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{
+            "text": "✅ *CI/CD SUCCESSFUL* on `${{ github.ref }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+          }' ${{ secrets.SLACK_WEBHOOK }}
