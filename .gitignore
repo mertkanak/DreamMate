@@ -1,53 +1,47 @@
-# ========================
-# Android Studio & Gradle
-# ========================
-.gradle/
-**/build/
-.cxx/
-captures/
-local.properties
-*.iml
+# === Android Studio ===
 .idea/
-*.apk
-*.ap_
-
-# ========================
-# Kotlin Script
-# ========================
-*.kts~
+*.iml
+.gradle/
+local.properties
 *.log
+captures/
+.externalNativeBuild/
+.cxx/
 
-# ========================
-# Keystore & Credentials
-# ========================
-*.jks
-*.keystore
+# === Gradle ===
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
 
-# ========================
-# Firebase & Secrets
-# ========================
+# === Kotlin ===
+*.kts~
+*.swp
+*.bak
+*.tmp
+*.orig
+
+# === Jetpack Compose ===
+*.snap
+
+# === Firebase & Secrets ===
 google-services.json
 serviceAccountKey.json
 firebase_b64.txt
 .env
 .env.*
 
-# ========================
-# VS Code & macOS
-# ========================
+# === Keystore Files ===
+*.jks
+*.keystore
+
+# === VS Code & macOS ===
 .vscode/
 .DS_Store
 
-# ========================
-# Misc
-# ========================
-*.swp
-*.bak
-*.tmp
-*.orig
+# === APKs ===
+*.apk
+*.ap_
 
-# ========================
-# Version Control
-# ========================
+# === Git Patches ===
 *.patch
 *.diff
