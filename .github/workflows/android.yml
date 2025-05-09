@@ -3,6 +3,12 @@ name: Android CI/CD
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'main'
 
 jobs:
   build:
@@ -12,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -23,8 +31,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Create local.properties
-        run: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Decode google-services.json
         run: |
