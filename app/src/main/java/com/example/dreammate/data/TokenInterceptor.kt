@@ -7,21 +7,20 @@ import okhttp3.Response
 
 class TokenInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val originalRequest = chain.request()
+        val original = chain.request()
+        // 1) URL’i logla
+        Log.d("AuthInterceptor", "Requesting URL → ${original.url}")
         val token = AuthTokenHolder.token
-
-        val requestToProceed = if (token != null) {
-            val authenticatedRequest = originalRequest.newBuilder()
+        return if (token != null) {
+            val req = original.newBuilder()
                 .addHeader("Authorization", "Bearer $token")
                 .build()
-            // → Burada header’ı loglayalım:
-            Log.d("AuthInterceptor", "Authorization header: ${authenticatedRequest.header("Authorization")}")
-            authenticatedRequest
+            // 2) Header’ı logla
+            Log.d("AuthInterceptor", "Authorization header → ${req.header("Authorization")}")
+            chain.proceed(req)
         } else {
-            Log.d("AuthInterceptor", "No token available, sending original request")
-            originalRequest
+            Log.d("AuthInterceptor", "No token, proceeding without auth header")
+            chain.proceed(original)
         }
-
-        return chain.proceed(requestToProceed)
     }
 }

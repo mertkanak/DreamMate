@@ -57,6 +57,18 @@ class MainActivity : ComponentActivity() {
             else Log.w("FCM", "Token alınamadı", task.exception)
         }
 
+        FirebaseAuth.getInstance().currentUser
+            ?.getIdToken(true)
+            ?.addOnSuccessListener { result ->
+                result.token?.let {
+                    AuthTokenHolder.token = it
+                    Log.d("AuthInit", "Başlangıçta token alındı")
+                }
+            }
+            ?.addOnFailureListener {
+                Log.e("AuthInit", "Başlangıçta token alınamadı", it)
+            }
+
         setContent {
             DreamMateTheme {
                 val navController = rememberNavController()
