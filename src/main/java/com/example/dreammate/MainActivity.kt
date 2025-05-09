@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.example.dreammate.session.AuthTokenHolder
 import com.example.dreammate.ui.StudyPlanScreen
 import com.example.dreammate.ui.theme.DreamMateTheme
 import com.example.dreammate.viewmodel.StudyPlanViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +30,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        // ✅ Android 13+ için bildirim iznini iste
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permissionCheck = ContextCompat.checkSelfPermission(
                 this,
@@ -39,26 +40,29 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        FirebaseMessaging.getInstance().subscribeToTopic("news")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("FCM", "Topiğe abone olundu: news ✅")
-                } else {
-                    Log.e("FCM", "Abonelik başarısız ❌", task.exception)
+        // 🔐 Kullanıcı login olduysa FCM işlemlerini yap
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null) {
+            // 1. FCM Topiğe abone ol
+            FirebaseMessaging.getInstance().subscribeToTopic("news")
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("FCM", "Topiğe abone olundu: news ✅")
+                    } else {
+                        Log.e("FCM", "Abonelik başarısız ❌", task.exception)
+                    }
                 }
-            }
 
-        // ✅ FCM token’ı al ve logla
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "TOKEN: $token")
-            } else {
-                Log.w("FCM", "Token alınamadı", task.exception)
-            }
+            // 2. FCM token’ı al ve sunucuya gönder (loglama yok!)
+            FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { fcmToken ->
+                    sendFcmTokenToBackend(fcmToken)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FCM", "Token alınamadı", e)
+                }
         }
 
-        // ✅ UI başlat
         setContent {
             DreamMateTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -71,7 +75,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // 🔹 Android 13+ için izin sonucu işleyici
+    private fun sendFcmTokenToBackend(token: String) {
+        val jwt = AuthTokenHolder.token
+        if (!jwt.isNullOrBlank()) {
+            // 🔐 Burada Retrofit veya başka servisle token'ı backend'e gönder
+            Log.d("FCM", "FCM token sunucuya gönderiliyor... (JWT ile)")
+            // Örnek: api.sendFcmToken("Bearer $jwt", token)
+        } else {
+            Log.w("FCM", "JWT token yok, FCM token gönderilemedi ❌")
+        }
+    }
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
