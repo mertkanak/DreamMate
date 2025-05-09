@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.dreammate.session.AuthTokenHolder
 import com.example.dreammate.ui.AuthScreen
 import com.example.dreammate.ui.StudyPlanScreen
 import com.example.dreammate.ui.theme.DreamMateTheme
@@ -56,6 +57,18 @@ class MainActivity : ComponentActivity() {
             else Log.w("FCM", "Token alınamadı", task.exception)
         }
 
+        FirebaseAuth.getInstance().currentUser
+            ?.getIdToken(true)
+            ?.addOnSuccessListener { result ->
+                result.token?.let {
+                    AuthTokenHolder.token = it
+                    Log.d("AuthInit", "Başlangıçta token alındı")
+                }
+            }
+            ?.addOnFailureListener {
+                Log.e("AuthInit", "Başlangıçta token alınamadı", it)
+            }
+
         setContent {
             DreamMateTheme {
                 val navController = rememberNavController()
@@ -64,14 +77,30 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(navController, startDestination = startDest) {
                     composable("auth") {
-                        // AuthViewModel’i compose scope’ta alıyoruz
                         val authVm: AuthViewModel = viewModel()
                         AuthScreen(
                             viewModel = authVm,
                             onAuthenticated = {
-                                navController.navigate("home") {
-                                    popUpTo("auth") { inclusive = true }
-                                }
+                                val user = FirebaseAuth.getInstance().currentUser
+                                user?.getIdToken(true)
+                                    ?.addOnSuccessListener { result ->
+                                        result.token?.let { idToken ->
+                                            AuthTokenHolder.token = idToken
+                                            Log.d("AuthToken", "Token alındı ve kaydedildi ✅")
+
+                                            // Token alındıktan sonra HOME ekranına geç:
+                                            navController.navigate("home") {
+                                                popUpTo("auth") { inclusive = true }
+                                            }
+                                        } ?: run {
+                                            Log.e("AuthToken", "Token null geldi ❌")
+                                        }
+                                    }
+                                    ?.addOnFailureListener { e ->
+                                        Log.e("AuthToken", "Token alınamadı ❌", e)
+                                    }
+                                // ↓ Buradaki navigate'i kaldırıyoruz!
+                                // navController.navigate("home") { … }
                             }
                         )
                     }

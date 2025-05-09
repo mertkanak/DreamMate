@@ -1,15 +1,12 @@
 package com.example.dreammate.ui
 
-import android.app.DatePickerDialog
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.*
@@ -19,12 +16,11 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.dreammate.model.SelectedSubject
 import com.example.dreammate.viewmodel.StudyPlanViewModel
-import androidx.compose.material3.ExperimentalMaterial3Api
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +30,7 @@ fun StudyPlanScreen(
 ) {
     val context = LocalContext.current
 
-    // StateFlow'ları doğru şekilde topla
+    // ViewModel’den gelen state’ler
     val isLoading by viewModel.isLoading.collectAsState()
     val pdfFile by viewModel.savedPdfFile.collectAsState()
     val selectedSubjects by viewModel.selectedSubjects.collectAsState()
@@ -46,17 +42,16 @@ fun StudyPlanScreen(
     var grade by remember { mutableStateOf("") }
     var academicYear by remember { mutableStateOf("2024-2025") }
     var targetExam by remember { mutableStateOf("TYT") }
-    var startDate by remember { mutableStateOf("") }
+    var startDate by remember { mutableStateOf("") }            // Artık manuel girdi
     var dailyStudyHours by remember { mutableStateOf("") }
     val subjectTopics = remember { mutableStateMapOf<String, String>() }
-
     val allDays = listOf("Pzt","Sal","Çar","Per","Cum","Cts","Paz")
 
-    // Hata mesajı gelince Toast göster ve temizle
+    // Hata geldiyse Toast göster ve temizle
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            viewModel.clearError() // istersen bu metodu da ekle ViewModel’e
+            viewModel.clearError()
         }
     }
 
@@ -71,7 +66,12 @@ fun StudyPlanScreen(
             // Öğrenci Bilgileri
             item {
                 Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text("Öğrenci Bilgileri", style = MaterialTheme.typography.titleMedium)
                         OutlinedTextField(
                             value = studentName,
@@ -100,7 +100,11 @@ fun StudyPlanScreen(
             // Hedef Sınav
             item {
                 Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(Modifier.padding(16.dp)) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
                         Text("Hedef Sınav", style = MaterialTheme.typography.titleMedium)
                         Row(
                             Modifier
@@ -123,7 +127,12 @@ fun StudyPlanScreen(
             // Ders Seçimi & Konular
             item {
                 Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text("Ders Seçimi", style = MaterialTheme.typography.titleMedium)
                         val subjects = if (targetExam == "TYT")
                             listOf("Mat","Fen","Sos","Türkçe")
@@ -165,7 +174,11 @@ fun StudyPlanScreen(
             // Gün Seçimi
             item {
                 Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(Modifier.padding(16.dp)) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
                         Text("Çalışılacak Günler", style = MaterialTheme.typography.titleMedium)
                         Row(
                             Modifier
@@ -185,30 +198,24 @@ fun StudyPlanScreen(
                 }
             }
 
-            // Tarih & Saat
+            // Tarih & Saat (MANUEL GİRİŞ)
             item {
                 Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Başlangıç Tarihi", style = MaterialTheme.typography.titleMedium)
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Başlangıç Tarihi (YYYY-MM-DD)", style = MaterialTheme.typography.titleMedium)
                         OutlinedTextField(
                             value = startDate,
-                            onValueChange = {},
-                            readOnly = true,
-                            placeholder = { Text("Tarih seç") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val c = Calendar.getInstance()
-                                    DatePickerDialog(
-                                        context,
-                                        { _, y, m, d ->
-                                            startDate = "%04d-%02d-%02d".format(y, m + 1, d)
-                                        },
-                                        c.get(Calendar.YEAR),
-                                        c.get(Calendar.MONTH),
-                                        c.get(Calendar.DAY_OF_MONTH)
-                                    ).show()
-                                }
+                            onValueChange = { startDate = it },
+                            label = { Text("Başlangıç Tarihi") },
+                            placeholder = { Text("2025-05-10") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
                         )
 
                         OutlinedTextField(
