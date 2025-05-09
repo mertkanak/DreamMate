@@ -10,6 +10,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
+import java.net.Proxy
+
 
 interface OpenAIService {
 
@@ -28,6 +30,7 @@ interface OpenAIService {
             }
 
             val client = OkHttpClient.Builder()
+                // ← proxy bypass
                 .connectTimeout(60, TimeUnit.SECONDS) // 🔥 60 saniye bağlantı süresi
                 .readTimeout(60, TimeUnit.SECONDS)    // 🔥 60 saniye veri okuma süresi
                 .writeTimeout(60, TimeUnit.SECONDS)   // 🔥 60 saniye veri yazma süresi
