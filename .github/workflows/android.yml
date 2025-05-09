@@ -37,6 +37,7 @@ jobs:
         run: |
           mkdir -p app
           echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > app/google-services.json
+        shell: bash
 
       - name: Read version info
         id: version
@@ -61,7 +62,7 @@ jobs:
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{
-            "text": "🚨 *CI/CD FAILED* on `${{ github.ref }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+            "text": "🚨 *CI/CD FAILED* on `${{ github.ref_name }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
           }' ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Send Slack notification on success
@@ -69,5 +70,5 @@ jobs:
         run: |
           curl -X POST -H 'Content-type: application/json' \
           --data '{
-            "text": "✅ *CI/CD SUCCESSFUL* on `${{ github.ref }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+            "text": "✅ *CI/CD SUCCESSFUL* on `${{ github.ref_name }}`\n*Commit:* `${{ github.sha }}`\n*By:* `${{ github.actor }}`\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
           }' ${{ secrets.SLACK_WEBHOOK }}
