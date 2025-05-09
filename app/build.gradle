@@ -66,6 +66,9 @@ dependencies {
     // Lifecycle
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.1"
 
+    //security
+    implementation "androidx.security:security-crypto:1.0.0-alpha06"
+
     // Networking (Retrofit + OkHttp)
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
     implementation "com.squareup.okhttp3:logging-interceptor:4.10.0"
