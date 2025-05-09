@@ -21,7 +21,8 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val startDest = if (FirebaseAuth.getInstance().currentUser != null) "home" else "auth"
+    val user = FirebaseAuth.getInstance().currentUser
+    val startDest = if (user != null && user.isEmailVerified) "home" else "auth"
     val context = LocalContext.current
 
     NavHost(navController, startDestination = startDest) {
