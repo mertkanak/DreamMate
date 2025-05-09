@@ -14,21 +14,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.dreammate.ui.AuthScreen
 import com.example.dreammate.ui.StudyPlanScreen
 import com.example.dreammate.ui.theme.DreamMateTheme
+import com.example.dreammate.viewmodel.AuthViewModel
 import com.example.dreammate.viewmodel.StudyPlanViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: StudyPlanViewModel by viewModels()
-
+    // Bu artık sadece fcm için kaldı; auth + studyPlan ViewModel'leri Compose içinde olur
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
 
-        // ✅ Android 13+ için bildirim iznini iste
+        // Android 13+ izin kontrolü (boşta bırakabilirsiniz; auth’dan bağımsız)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permissionCheck = ContextCompat.checkSelfPermission(
                 this,
@@ -39,39 +45,52 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // FCM topic + token
         FirebaseMessaging.getInstance().subscribeToTopic("news")
             .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("FCM", "Topiğe abone olundu: news ✅")
-                } else {
-                    Log.e("FCM", "Abonelik başarısız ❌", task.exception)
-                }
+                if (task.isSuccessful) Log.d("FCM", "Topiğe abone olundu: news ✅")
+                else Log.e("FCM", "Abonelik başarısız ❌", task.exception)
             }
-
-        // ✅ FCM token’ı al ve logla
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "TOKEN: $token")
-            } else {
-                Log.w("FCM", "Token alınamadı", task.exception)
-            }
+            if (task.isSuccessful) Log.d("FCM", "TOKEN: ${task.result}")
+            else Log.w("FCM", "Token alınamadı", task.exception)
         }
 
-        // ✅ UI başlat
         setContent {
             DreamMateTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    StudyPlanScreen(
-                        viewModel = viewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+                // Başlangıç, eğer kullanıcı zaten logged-in ise direkt home, aksi halde auth
+                val startDest = if (FirebaseAuth.getInstance().currentUser != null) "home" else "auth"
+
+                NavHost(navController, startDestination = startDest) {
+                    composable("auth") {
+                        // AuthViewModel’i compose scope’ta alıyoruz
+                        val authVm: AuthViewModel = viewModel()
+                        AuthScreen(
+                            viewModel = authVm,
+                            onAuthenticated = {
+                                navController.navigate("home") {
+                                    popUpTo("auth") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
+                    composable("home") {
+                        // StudyPlanViewModel’i de yine compose içinde al
+                        val studyVm: StudyPlanViewModel = viewModel()
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            StudyPlanScreen(
+                                viewModel = studyVm,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 
-    // 🔹 Android 13+ için izin sonucu işleyici
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
