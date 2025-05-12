@@ -5,21 +5,18 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.dreammate.model.SelectedSubject
+import com.example.dreammate.ui.theme.components.*
 import com.example.dreammate.viewmodel.StudyPlanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,24 +27,20 @@ fun StudyPlanScreen(
 ) {
     val context = LocalContext.current
 
-    // ViewModel’den gelen state’ler
     val isLoading by viewModel.isLoading.collectAsState()
     val pdfFile by viewModel.savedPdfFile.collectAsState()
     val selectedSubjects by viewModel.selectedSubjects.collectAsState()
     val selectedDays by viewModel.selectedDays.collectAsState()
+    val selectedTopics by viewModel.selectedTopics.collectAsState()
+    val subjectTopicMap by viewModel.subjectTopicMap.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
     // UI-only state
     var studentName by remember { mutableStateOf("") }
-    var grade by remember { mutableStateOf("") }
     var academicYear by remember { mutableStateOf("2024-2025") }
     var targetExam by remember { mutableStateOf("TYT") }
-    var startDate by remember { mutableStateOf("") }            // Artık manuel girdi
     var dailyStudyHours by remember { mutableStateOf("") }
-    val subjectTopics = remember { mutableStateMapOf<String, String>() }
-    val allDays = listOf("Pzt","Sal","Çar","Per","Cum","Cts","Paz")
 
-    // Hata geldiyse Toast göster ve temizle
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -55,7 +48,7 @@ fun StudyPlanScreen(
         }
     }
 
-    Box(modifier.then(modifier).fillMaxSize()) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -63,259 +56,76 @@ fun StudyPlanScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Öğrenci Bilgileri
             item {
-                Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("Öğrenci Bilgileri", style = MaterialTheme.typography.titleMedium)
-                        OutlinedTextField(
-                            value = studentName,
-                            onValueChange = { studentName = it },
-                            label = { Text("Ad Soyad") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            value = grade,
-                            onValueChange = { grade = it },
-                            label = { Text("Sınıf (örn: 11)") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            value = academicYear,
-                            onValueChange = { academicYear = it },
-                            label = { Text("Öğretim Yılı") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
+                StudentInfoSection(
+                    studentName = studentName,
+                    onNameChange = { studentName = it },
+                    selectedGrade = viewModel.selectedGrade,
+                    gradeOptions = viewModel.gradeOptions,
+                    onGradeSelected = viewModel::onGradeSelected,
+                    academicYear = academicYear,
+                    onAcademicYearChange = { academicYear = it }
+                )
             }
 
-            // Hedef Sınav
             item {
-                Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text("Hedef Sınav", style = MaterialTheme.typography.titleMedium)
-                        Row(
-                            Modifier
-                                .horizontalScroll(rememberScrollState())
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            listOf("TYT", "AYT").forEach { exam ->
-                                FilterChip(
-                                    selected = targetExam == exam,
-                                    onClick = { targetExam = exam },
-                                    label = { Text(exam) }
-                                )
-                            }
-                        }
-                    }
-                }
+                TargetExamSection(
+                    targetExam = targetExam,
+                    onExamSelected = { targetExam = it }
+                )
             }
 
-            // Ders Seçimi & Konular
             item {
-                Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("Ders Seçimi", style = MaterialTheme.typography.titleMedium)
-                        val subjects = if (targetExam == "TYT")
-                            listOf("Mat","Fen","Sos","Türkçe")
-                        else
-                            listOf("Mat","Fiz","Kim","Bio","Edb","Tar","Cog","Fel","Din")
-
-                        Row(
-                            Modifier.horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            subjects.forEach { subj ->
-                                FilterChip(
-                                    selected = selectedSubjects.contains(subj),
-                                    onClick = {
-                                        viewModel.toggleSubject(subj)
-                                        if (!selectedSubjects.contains(subj)) subjectTopics.remove(subj)
-                                    },
-                                    label = { Text(subj) }
-                                )
-                            }
-                        }
-
-                        if (selectedSubjects.isNotEmpty()) {
-                            Text("Konular", style = MaterialTheme.typography.titleSmall)
-                            selectedSubjects.forEach { subj ->
-                                OutlinedTextField(
-                                    value = subjectTopics.getOrDefault(subj, ""),
-                                    onValueChange = { subjectTopics[subj] = it },
-                                    label = { Text("$subj Konuları") },
-                                    placeholder = { Text("Virgülle ayır") },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
-                }
+                StudentSubjectSelectionSection(
+                    subjectList = subjectTopicMap.keys.toList(),
+                    selectedSubjects = selectedSubjects,
+                    onSubjectToggle = { viewModel.toggleSubject(it) },
+                    subjectTopicMap = subjectTopicMap,
+                    selectedTopics = selectedTopics,
+                    onTopicToggle = { subject, topic -> viewModel.toggleTopic(subject, topic) }
+                )
             }
 
-            // Gün Seçimi
             item {
-                Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text("Çalışılacak Günler", style = MaterialTheme.typography.titleMedium)
-                        Row(
-                            Modifier
-                                .horizontalScroll(rememberScrollState())
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            allDays.forEach { day ->
-                                FilterChip(
-                                    selected = selectedDays.contains(day),
-                                    onClick = { viewModel.toggleDay(day) },
-                                    label = { Text(day) }
-                                )
-                            }
-                        }
-                    }
-                }
+                DaySelectionSection(
+                    allDays = viewModel.allDays,
+                    selectedDays = selectedDays,
+                    onToggleDay = { viewModel.toggleDay(it) }
+                )
             }
 
-            // Tarih & Saat (MANUEL GİRİŞ)
             item {
-                Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("Başlangıç Tarihi (YYYY-MM-DD)", style = MaterialTheme.typography.titleMedium)
-                        OutlinedTextField(
-                            value = startDate,
-                            onValueChange = { startDate = it },
-                            label = { Text("Başlangıç Tarihi") },
-                            placeholder = { Text("2025-05-10") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        OutlinedTextField(
-                            value = dailyStudyHours,
-                            onValueChange = { dailyStudyHours = it },
-                            label = { Text("Günlük Çalışma (saat)") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
+                OutlinedTextField(
+                    value = dailyStudyHours,
+                    onValueChange = { dailyStudyHours = it },
+                    label = { Text("Günlük Çalışma (saat)") },
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
-            // Buton ve PDF Kartı
             item {
-                Spacer(Modifier.height(24.dp))
-                Button(
-                    onClick = {
-                        if (startDate.isEmpty()
-                            || selectedSubjects.isEmpty()
-                            || selectedDays.isEmpty()
-                            || dailyStudyHours.isBlank()
-                        ) {
-                            Toast.makeText(context, "Lütfen tüm alanları doldurunuz.", Toast.LENGTH_SHORT).show()
-                            return@Button
-                        }
+                PlanButtonSection(
+                    context = context,
+                    isFormValid = viewModel.startDate.isNotBlank()
+                            && selectedSubjects.isNotEmpty()
+                            && selectedDays.isNotEmpty()
+                            && dailyStudyHours.isNotBlank(),
+                    onGeneratePlan = {
                         viewModel.generateStudyPlan(
                             studentName = studentName,
-                            grade = grade,
+                            grade = viewModel.selectedGrade,
                             academicYear = academicYear,
                             targetExam = targetExam,
-                            selectedSubjects = selectedSubjects.map { sub ->
-                                SelectedSubject(
-                                    sub,
-                                    subjectTopics[sub]
-                                        ?.split(",")
-                                        ?.map(String::trim)
-                                        ?: emptyList()
-                                )
-                            },
-                            availableDays = selectedDays,
                             dailyStudyHours = dailyStudyHours.toFloat(),
-                            startDate = startDate,
                             examDate = "2025-06-21"
                         )
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Planı Oluştur")
-                }
-
-                pdfFile?.let { file ->
-                    Spacer(Modifier.height(16.dp))
-                    Card(
-                        Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
-                    ) {
-                        Column(
-                            Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                "✅ Plan Oluşturuldu: ${file.name}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            val uri = FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.provider",
-                                file
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = {
-                                    context.startActivity(
-                                        Intent(Intent.ACTION_VIEW).apply {
-                                            setDataAndType(uri, "application/pdf")
-                                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                        }
-                                    )
-                                }) { Text("Görüntüle") }
-                                Button(onClick = {
-                                    context.startActivity(
-                                        Intent.createChooser(
-                                            Intent(Intent.ACTION_SEND).apply {
-                                                type = "application/pdf"
-                                                putExtra(Intent.EXTRA_STREAM, uri)
-                                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                            },
-                                            "Paylaş"
-                                        )
-                                    )
-                                }) { Text("Paylaş") }
-                            }
-                        }
-                    }
-                }
+                    pdfFile = pdfFile
+                )
             }
         }
 
-        // Yükleniyor Overlay
         if (isLoading) {
             Box(
                 Modifier

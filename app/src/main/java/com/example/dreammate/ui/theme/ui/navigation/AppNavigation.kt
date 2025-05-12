@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.dreammate.session.AuthTokenHolder
 import com.example.dreammate.ui.AuthScreen
 import com.example.dreammate.ui.StudyPlanScreen
+import com.example.dreammate.ui.screens.SplashScreen
 import com.example.dreammate.viewmodel.AuthViewModel
 import com.example.dreammate.viewmodel.StudyPlanViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -21,10 +22,13 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val startDest = if (FirebaseAuth.getInstance().currentUser != null) "home" else "auth"
     val context = LocalContext.current
 
-    NavHost(navController, startDestination = startDest) {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") {
+            SplashScreen(navController = navController)
+        }
+
         composable("auth") {
             val authVm: AuthViewModel = viewModel()
             AuthScreen(

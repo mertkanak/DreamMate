@@ -1,6 +1,10 @@
 package com.example.dreammate.viewmodel
 
+import android.app.Application
 import android.os.Environment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dreammate.data.OpenAIService
@@ -12,66 +16,100 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class StudyPlanViewModel(
-    application: android.app.Application
+    application: Application
 ) : AndroidViewModel(application) {
 
-    // PDF çıktısı
-    private val _savedPdfFile = MutableStateFlow<File?>(null)
-    val savedPdfFile: StateFlow<File?> = _savedPdfFile
+    // ---------------- Genel UI Stateleri ----------------
 
-    // Yükleniyor durumu
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    var selectedGrade by mutableStateOf("")
+        private set
 
-    // Hata mesajı (UI’da toparlayıp Toast/snackbar’a çevrilebilir)
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    var startDate by mutableStateOf("")
+        private set
 
-    // Seçilen dersler
+    fun onGradeSelected(grade: String) {
+        selectedGrade = grade
+    }
+
+    fun onStartDateSelected(date: String) {
+        startDate = date
+    }
+
+    // ---------------- Sabit Listeler ----------------
+
+    private val _gradeOptions = listOf("9", "10", "11", "12")
+    val gradeOptions: List<String> = _gradeOptions
+
+    private val _allDays = listOf("Pzt", "Sal", "Çar", "Per", "Cum", "Cts", "Paz")
+    val allDays: List<String> = _allDays
+
+    // ---------------- Dersler ve Konular ----------------
+
     private val _selectedSubjects = MutableStateFlow<List<String>>(emptyList())
     val selectedSubjects: StateFlow<List<String>> = _selectedSubjects
 
-    // Seçilen günler
-    private val _selectedDays = MutableStateFlow<List<String>>(emptyList())
-    val selectedDays: StateFlow<List<String>> = _selectedDays
+    private val _selectedTopics = MutableStateFlow<Map<String, List<String>>>(emptyMap())
+    val selectedTopics: StateFlow<Map<String, List<String>>> = _selectedTopics
 
-    /** Ders seçimini toggle’lar (TYT/AYT ayrımını UI’da yapıyoruz) */
+    private val _subjectTopicMap = MutableStateFlow<Map<String, List<String>>>(
+        mapOf(
+            "Matematik" to listOf("Türev", "İntegral", "Limit"),
+            "Fizik" to listOf("Kuvvet", "Hareket", "Enerji"),
+            "Kimya" to listOf("Maddeler", "Asit Baz", "Mol"),
+            "Biyoloji" to listOf("Hücre", "Kalıtım", "Ekosistem")
+        )
+    )
+    val subjectTopicMap: StateFlow<Map<String, List<String>>> = _subjectTopicMap
+
     fun toggleSubject(subject: String) {
         val current = _selectedSubjects.value.toMutableList()
-        if (current.contains(subject)) current.remove(subject)
-        else current.add(subject)
+        if (current.contains(subject)) current.remove(subject) else current.add(subject)
         _selectedSubjects.value = current
     }
 
-    // … StudyPlanViewModel içinde …
+    fun toggleTopic(subject: String, topic: String) {
+        val current = _selectedTopics.value.toMutableMap()
+        val list = current[subject]?.toMutableList() ?: mutableListOf()
 
-    /** Hata mesajını temizler */
+        if (list.contains(topic)) list.remove(topic) else list.add(topic)
+        current[subject] = list
+        _selectedTopics.value = current
+    }
+
+    // ---------------- Gün Seçimi ----------------
+
+    private val _selectedDays = MutableStateFlow<List<String>>(emptyList())
+    val selectedDays: StateFlow<List<String>> = _selectedDays
+
+    fun toggleDay(day: String) {
+        val current = _selectedDays.value.toMutableList()
+        if (current.contains(day)) current.remove(day) else current.add(day)
+        _selectedDays.value = current
+    }
+
+    // ---------------- Yüklenme / Hata / Dosya ----------------
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     fun clearError() {
         _errorMessage.value = null
     }
 
-    /** Gün seçimini toggle’lar */
-    fun toggleDay(day: String) {
-        val current = _selectedDays.value.toMutableList()
-        if (current.contains(day)) current.remove(day)
-        else current.add(day)
-        _selectedDays.value = current
-    }
+    private val _savedPdfFile = MutableStateFlow<File?>(null)
+    val savedPdfFile: StateFlow<File?> = _savedPdfFile
 
-    /**
-     * OpenAI servisine isteği atar, gelen PDF’i dosyaya yazar,
-     * state’leri günceller. UI toast/snackbar göstermeyi
-     * errorMessage ve savedPdfFile’dan dinleyebilirsiniz.
-     */
+    // ---------------- Plan Oluşturma ----------------
+
     fun generateStudyPlan(
         studentName: String,
         grade: String,
         academicYear: String,
         targetExam: String,
-        selectedSubjects: List<SelectedSubject>,
-        availableDays: List<String>,
         dailyStudyHours: Float,
-        startDate: String,
         examDate: String
     ) {
         viewModelScope.launch {
@@ -80,15 +118,20 @@ class StudyPlanViewModel(
 
             try {
                 val request = StudyPlanRequest(
-                    student_name    = studentName,
-                    grade           = grade,
-                    academic_year   = academicYear,
-                    target_exam     = targetExam,
-                    selected_subjects = selectedSubjects,
-                    available_days  = availableDays,
+                    student_name = studentName,
+                    grade = grade,
+                    academic_year = academicYear,
+                    target_exam = targetExam,
+                    selected_subjects = _selectedSubjects.value.map { subject ->
+                        SelectedSubject(
+                            subject,
+                            _selectedTopics.value[subject] ?: emptyList()
+                        )
+                    },
+                    available_days = _selectedDays.value,
                     daily_study_hours = dailyStudyHours,
-                    start_date      = startDate,
-                    exam_date       = examDate
+                    start_date = startDate,
+                    exam_date = examDate
                 )
 
                 val response = OpenAIService.api.generateStudyPlan(request)
@@ -99,7 +142,7 @@ class StudyPlanViewModel(
                     if (body == null) {
                         _errorMessage.value = "Sunucudan boş cevap geldi."
                     } else {
-                        val dir = getApplication<android.app.Application>()
+                        val dir = getApplication<Application>()
                             .getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
                         val fileName = "study_plan_${System.currentTimeMillis()}.pdf"
                         val file = File(dir, fileName)
