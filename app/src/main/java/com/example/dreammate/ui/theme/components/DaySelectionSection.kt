@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,14 +19,25 @@ fun DaySelectionSection(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
         Column(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Çalışılacak Günler", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Çalışılacak Günler",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
             // Dropdown Spinner tarzı
             ExposedDropdownMenuBox(
@@ -36,13 +48,27 @@ fun DaySelectionSection(
                     readOnly = true,
                     value = if (selectedDays.isNotEmpty()) selectedDays.joinToString(", ") else "Gün seçin",
                     onValueChange = {},
-                    label = { Text("Seçilen Günler") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    label = {
+                        Text(
+                            "Seçilen Günler",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth(),
                     maxLines = 1,
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
 
                 ExposedDropdownMenu(
@@ -54,11 +80,19 @@ fun DaySelectionSection(
                             text = {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(day)
+                                    Text(
+                                        text = day,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                     if (selectedDays.contains(day)) {
-                                        Text("✓")
+                                        Text(
+                                            text = "✓",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
                                 }
                             },

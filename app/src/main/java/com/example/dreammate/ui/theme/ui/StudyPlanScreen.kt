@@ -35,7 +35,6 @@ fun StudyPlanScreen(
     val subjectTopicMap by viewModel.subjectTopicMap.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // UI-only state
     var studentName by remember { mutableStateOf("") }
     var academicYear by remember { mutableStateOf("2024-2025") }
     var targetExam by remember { mutableStateOf("TYT") }
@@ -98,9 +97,24 @@ fun StudyPlanScreen(
                 OutlinedTextField(
                     value = dailyStudyHours,
                     onValueChange = { dailyStudyHours = it },
-                    label = { Text("Günlük Çalışma (saat)") },
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    label = {
+                        Text(
+                            "Günlük Çalışma (saat)",
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
             }
 
@@ -130,10 +144,12 @@ fun StudyPlanScreen(
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Color(0xAAFFFFFF)),
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }

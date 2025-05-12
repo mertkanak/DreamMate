@@ -8,7 +8,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dreammate.viewmodel.AuthViewModel
-import com.google.firebase.auth.FirebaseUser
 
 @Composable
 fun AuthScreen(
@@ -16,16 +15,13 @@ fun AuthScreen(
     onAuthenticated: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // ViewModel’den gelen auth sonucu
     val authState by viewModel.authState.collectAsState()
 
-    // UI state’leri
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoginMode by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
-    // Auth değiştiğinde, başarılıysa onAuthenticated tetiklenir
     LaunchedEffect(authState) {
         authState.fold(
             onSuccess = { user ->
@@ -40,41 +36,66 @@ fun AuthScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = if (isLoginMode) "Giriş Yap" else "Kayıt Ol",
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("E-posta") },
+            label = {
+                Text("E-posta", color = MaterialTheme.colorScheme.onSurface)
+            },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Şifre") },
+            label = {
+                Text("Şifre", color = MaterialTheme.colorScheme.onSurface)
+            },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            )
         )
 
         errorMsg?.let {
             Spacer(Modifier.height(8.dp))
-            Text(text = it, color = MaterialTheme.colorScheme.error)
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
 
         Button(
             onClick = {
@@ -82,12 +103,19 @@ fun AuthScreen(
                 if (isLoginMode) viewModel.signIn(email.trim(), password)
                 else viewModel.signUp(email.trim(), password)
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            Text(if (isLoginMode) "Giriş" else "Kayıt Ol")
+            Text(
+                if (isLoginMode) "Giriş" else "Kayıt Ol",
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.labelLarge
+            )
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
         TextButton(onClick = {
             isLoginMode = !isLoginMode
@@ -97,7 +125,9 @@ fun AuthScreen(
                 if (isLoginMode)
                     "Hesabın yok mu? Kayıt ol"
                 else
-                    "Zaten üyeysen giriş yap"
+                    "Zaten üyeysen giriş yap",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

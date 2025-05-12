@@ -14,24 +14,51 @@ fun TargetExamSection(
     targetExam: String,
     onExamSelected: (String) -> Unit
 ) {
-    Card(Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
         Column(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text("Hedef Sınav", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Hedef Sınav",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
             Row(
-                Modifier
+                modifier = Modifier
                     .horizontalScroll(rememberScrollState())
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf("TYT", "AYT").forEach { exam ->
+                    val isSelected = targetExam == exam
+
                     FilterChip(
-                        selected = targetExam == exam,
+                        selected = isSelected,
                         onClick = { onExamSelected(exam) },
-                        label = { Text(exam) }
+                        label = {
+                            Text(
+                                text = exam,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isSelected)
+                                    MaterialTheme.colorScheme.onPrimary
+                                else
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     )
                 }
             }

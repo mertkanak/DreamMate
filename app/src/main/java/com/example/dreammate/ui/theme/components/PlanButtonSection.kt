@@ -26,6 +26,7 @@ fun PlanButtonSection(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Button(
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             onClick = {
                 if (!isFormValid) {
                     Toast.makeText(context, "Lütfen tüm alanları doldurunuz.", Toast.LENGTH_SHORT).show()
@@ -47,7 +48,9 @@ fun PlanButtonSection(
                     Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("✅ Plan Oluşturuldu: ${file.name}")
+                    Text("✅ Plan Oluşturuldu: ${file.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface)
 
                     val uri: Uri = FileProvider.getUriForFile(
                         context,
@@ -67,7 +70,9 @@ fun PlanButtonSection(
                             Text("Görüntüle")
                         }
 
-                        Button(onClick = {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            onClick = {
                             context.startActivity(
                                 Intent.createChooser(
                                     Intent(Intent.ACTION_SEND).apply {
