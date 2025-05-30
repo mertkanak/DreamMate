@@ -9,7 +9,7 @@ data class StudyPlanRequest(
     val available_days: List<String>,
     val daily_study_hours: Float,
     val exam_date: String = "2025-06-21", // Sabit sınav tarihi
-    val start_date: String                 // Öğretmenin seçtiği başlangıç tarihi (DatePicker'dan)
+    val start_date: String? = null                 // Öğretmenin seçtiği başlangıç tarihi (DatePicker'dan)
 )
 
 data class SelectedSubject(

@@ -34,7 +34,7 @@ fun SplashScreen(navController: NavHostController) {
 
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null && user.isEmailVerified) {
-            navController.navigate("home") {
+            navController.navigate("main") {
                 popUpTo("splash") { inclusive = true }
             }
         } else {

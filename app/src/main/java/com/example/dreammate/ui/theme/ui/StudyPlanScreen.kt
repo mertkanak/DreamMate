@@ -121,8 +121,7 @@ fun StudyPlanScreen(
             item {
                 PlanButtonSection(
                     context = context,
-                    isFormValid = viewModel.startDate.isNotBlank()
-                            && selectedSubjects.isNotEmpty()
+                    isFormValid = selectedSubjects.isNotEmpty()
                             && selectedDays.isNotEmpty()
                             && dailyStudyHours.isNotBlank(),
                     onGeneratePlan = {
@@ -133,6 +132,7 @@ fun StudyPlanScreen(
                             targetExam = targetExam,
                             dailyStudyHours = dailyStudyHours.toFloat(),
                             examDate = "2025-06-21"
+                            // startDate gönderilmiyor
                         )
                     },
                     pdfFile = pdfFile

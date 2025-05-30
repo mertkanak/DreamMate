@@ -45,6 +45,8 @@ dependencies {
     implementation "com.google.firebase:firebase-analytics"
     implementation "com.google.firebase:firebase-messaging"
     implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-firestore:25.0.0'
+
 
     // Core & Kotlin stdlib
     implementation "androidx.core:core-ktx:1.12.0"

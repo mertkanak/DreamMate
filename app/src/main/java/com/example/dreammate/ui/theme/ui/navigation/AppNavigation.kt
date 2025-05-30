@@ -1,12 +1,7 @@
 package com.example.dreammate.ui.theme.ui.navigation
 
 import android.util.Log
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -14,10 +9,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.dreammate.session.AuthTokenHolder
 import com.example.dreammate.ui.AuthScreen
-import com.example.dreammate.ui.StudyPlanScreen
 import com.example.dreammate.ui.screens.SplashScreen
 import com.example.dreammate.viewmodel.AuthViewModel
-import com.example.dreammate.viewmodel.StudyPlanViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -42,7 +35,7 @@ fun AppNavigation() {
                                 AuthTokenHolder.update(context, idToken)
                                 Log.d("AuthToken", "Token güvenli şekilde alındı ✅")
 
-                                navController.navigate("home") {
+                                navController.navigate("main") {
                                     popUpTo("auth") { inclusive = true }
                                 }
                             } ?: run {
@@ -56,18 +49,8 @@ fun AppNavigation() {
             )
         }
 
-        composable("home") {
-            val studyVm: StudyPlanViewModel = viewModel()
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.onBackground
-            ) { innerPadding ->
-                StudyPlanScreen(
-                    viewModel = studyVm,
-                    modifier = Modifier.padding(innerPadding)
-                )
-            }
+        composable("main") {
+            MainScreen()
         }
     }
 }

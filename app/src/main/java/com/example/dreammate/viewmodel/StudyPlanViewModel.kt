@@ -110,7 +110,8 @@ class StudyPlanViewModel(
         academicYear: String,
         targetExam: String,
         dailyStudyHours: Float,
-        examDate: String
+        examDate: String,
+        startDate: String? = null
     ) {
         viewModelScope.launch {
             _isLoading.value = true
