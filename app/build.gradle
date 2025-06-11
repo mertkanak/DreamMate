@@ -68,6 +68,10 @@ dependencies {
     // Lifecycle
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.1"
 
+    //icon
+    implementation("androidx.compose.material:material-icons-extended")
+
+
     //security
     implementation "androidx.security:security-crypto:1.0.0"
 

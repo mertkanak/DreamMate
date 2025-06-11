@@ -2,7 +2,6 @@ package com.example.dreammate.ui.theme.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,31 +26,25 @@ fun MainScreen() {
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { HomeScreen() }
-            composable("profile") { ProfileScreen() }
+            composable("home") {
+                HomeScreen(
+                    onNavigateToStudyPlan = { navController.navigate("studyplan") },
+                    onNavigateToTest = { navController.navigate("tasks") },
+                    onNavigateToStats = { navController.navigate("notifications") }
+                )
+            }
+            composable("profile") {
+                ProfileScreen(
+                    onSignOut = {
+                        navController.navigate("auth") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
             composable("studyplan") { StudyPlanScreen(viewModel = studyVm) }
             composable("tasks") { TasksScreen() }
             composable("notifications") { NotificationsScreen() }
         }
     }
-}
-
-@Composable
-fun HomeScreen() {
-    Text(text = "Home Ekranı")
-}
-
-@Composable
-fun ProfileScreen() {
-    Text(text = "Profil Ekranı")
-}
-
-@Composable
-fun TasksScreen() {
-    Text(text = "Görevler Ekranı")
-}
-
-@Composable
-fun NotificationsScreen() {
-    Text(text = "Bildirimler Ekranı")
 }

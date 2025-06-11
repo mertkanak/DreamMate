@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.dreammate.model.SelectedSubject
+import com.example.dreammate.ui.components.Header
 import com.example.dreammate.ui.theme.components.*
 import com.example.dreammate.viewmodel.StudyPlanViewModel
 
@@ -23,7 +24,8 @@ import com.example.dreammate.viewmodel.StudyPlanViewModel
 @Composable
 fun StudyPlanScreen(
     viewModel: StudyPlanViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -47,109 +49,117 @@ fun StudyPlanScreen(
         }
     }
 
-    Box(modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .then(if (isLoading) Modifier.blur(8.dp) else Modifier),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                StudentInfoSection(
-                    studentName = studentName,
-                    onNameChange = { studentName = it },
-                    selectedGrade = viewModel.selectedGrade,
-                    gradeOptions = viewModel.gradeOptions,
-                    onGradeSelected = viewModel::onGradeSelected,
-                    academicYear = academicYear,
-                    onAcademicYearChange = { academicYear = it }
-                )
-            }
+    Column(modifier = Modifier.fillMaxSize()) {
+        Header(
+            title = "Çalışma Planı",
+            showBackButton = true,
+            onBackClick = onBackClick
+        )
 
-            item {
-                TargetExamSection(
-                    targetExam = targetExam,
-                    onExamSelected = { targetExam = it }
-                )
-            }
-
-            item {
-                StudentSubjectSelectionSection(
-                    subjectList = subjectTopicMap.keys.toList(),
-                    selectedSubjects = selectedSubjects,
-                    onSubjectToggle = { viewModel.toggleSubject(it) },
-                    subjectTopicMap = subjectTopicMap,
-                    selectedTopics = selectedTopics,
-                    onTopicToggle = { subject, topic -> viewModel.toggleTopic(subject, topic) }
-                )
-            }
-
-            item {
-                DaySelectionSection(
-                    allDays = viewModel.allDays,
-                    selectedDays = selectedDays,
-                    onToggleDay = { viewModel.toggleDay(it) }
-                )
-            }
-
-            item {
-                OutlinedTextField(
-                    value = dailyStudyHours,
-                    onValueChange = { dailyStudyHours = it },
-                    label = {
-                        Text(
-                            "Günlük Çalışma (saat)",
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-            }
-
-            item {
-                PlanButtonSection(
-                    context = context,
-                    isFormValid = selectedSubjects.isNotEmpty()
-                            && selectedDays.isNotEmpty()
-                            && dailyStudyHours.isNotBlank(),
-                    onGeneratePlan = {
-                        viewModel.generateStudyPlan(
-                            studentName = studentName,
-                            grade = viewModel.selectedGrade,
-                            academicYear = academicYear,
-                            targetExam = targetExam,
-                            dailyStudyHours = dailyStudyHours.toFloat(),
-                            examDate = "2025-06-21"
-                            // startDate gönderilmiyor
-                        )
-                    },
-                    pdfFile = pdfFile
-                )
-            }
-        }
-
-        if (isLoading) {
-            Box(
-                Modifier
+        Box(modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.7f)),
-                contentAlignment = Alignment.Center
+                    .then(if (isLoading) Modifier.blur(8.dp) else Modifier),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary
-                )
+                item {
+                    StudentInfoSection(
+                        studentName = studentName,
+                        onNameChange = { studentName = it },
+                        selectedGrade = viewModel.selectedGrade,
+                        gradeOptions = viewModel.gradeOptions,
+                        onGradeSelected = viewModel::onGradeSelected,
+                        academicYear = academicYear,
+                        onAcademicYearChange = { academicYear = it }
+                    )
+                }
+
+                item {
+                    TargetExamSection(
+                        targetExam = targetExam,
+                        onExamSelected = { targetExam = it }
+                    )
+                }
+
+                item {
+                    StudentSubjectSelectionSection(
+                        subjectList = subjectTopicMap.keys.toList(),
+                        selectedSubjects = selectedSubjects,
+                        onSubjectToggle = { viewModel.toggleSubject(it) },
+                        subjectTopicMap = subjectTopicMap,
+                        selectedTopics = selectedTopics,
+                        onTopicToggle = { subject, topic -> viewModel.toggleTopic(subject, topic) }
+                    )
+                }
+
+                item {
+                    DaySelectionSection(
+                        allDays = viewModel.allDays,
+                        selectedDays = selectedDays,
+                        onToggleDay = { viewModel.toggleDay(it) }
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = dailyStudyHours,
+                        onValueChange = { dailyStudyHours = it },
+                        label = {
+                            Text(
+                                "Günlük Çalışma (saat)",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+
+                item {
+                    PlanButtonSection(
+                        context = context,
+                        isFormValid = selectedSubjects.isNotEmpty()
+                                && selectedDays.isNotEmpty()
+                                && dailyStudyHours.isNotBlank(),
+                        onGeneratePlan = {
+                            viewModel.generateStudyPlan(
+                                studentName = studentName,
+                                grade = viewModel.selectedGrade,
+                                academicYear = academicYear,
+                                targetExam = targetExam,
+                                dailyStudyHours = dailyStudyHours.toFloat(),
+                                examDate = "2025-06-21"
+                                // startDate gönderilmiyor
+                            )
+                        },
+                        pdfFile = pdfFile
+                    )
+                }
+            }
+
+            if (isLoading) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
